@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Original Image URL:', sceneImageUrl);
 
                 startCorsProxyFetch = performance.now();
-                const proxyUrl = 'https://anime-scene-search.vercel.app/';
+                const proxyUrl = 'https://vercel.com/rakshaks-projects-8e7a4a72/anime-scene-search';
                 const imgResponse = await fetch(proxyUrl + encodeURIComponent(sceneImageUrl));
                 const imgBlob = await imgResponse.blob();
                 const imgUrl = URL.createObjectURL(imgBlob);
