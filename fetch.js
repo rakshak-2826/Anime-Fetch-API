@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Original Video URL:', videoUrl);
                 console.log('Original Image URL:', sceneImageUrl);
 
-                // Use direct URLs from trace.moe API without localhost proxy
+                // Fetch image directly from trace.moe API
                 const imgResponse = await fetch(sceneImageUrl);
                 const imgBlob = await imgResponse.blob();
                 const imgUrl = URL.createObjectURL(imgBlob);
