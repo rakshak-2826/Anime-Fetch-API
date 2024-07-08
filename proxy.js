@@ -1,4 +1,4 @@
-// Example API route: api/proxy.js
+// File: api/proxy.js
 
 import fetch from 'node-fetch';
 import { VercelRequest, VercelResponse } from '@vercel/node';
