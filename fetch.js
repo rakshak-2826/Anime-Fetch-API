@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let startTotalFetch, endTotalFetch;
         let startTraceMoeFetch, endTraceMoeFetch;
         let startTraceMoeParse, endTraceMoeParse;
-        let startCorsProxyFetch, endCorsProxyFetch;
         let startAniListFetch, endAniListFetch;
         let startAniListParse, endAniListParse;
 
@@ -66,15 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Original Video URL:', videoUrl);
                 console.log('Original Image URL:', sceneImageUrl);
 
-                startCorsProxyFetch = performance.now();
-                const corsProxyUrl = `http://localhost:3000/proxy?url=${encodeURIComponent(sceneImageUrl)}`;
-                const imgResponse = await fetch(corsProxyUrl);
+                // Use direct URLs from trace.moe API without localhost proxy
+                const imgResponse = await fetch(sceneImageUrl);
                 const imgBlob = await imgResponse.blob();
                 const imgUrl = URL.createObjectURL(imgBlob);
-                endCorsProxyFetch = performance.now();
-                console.log('CORS Proxy Image URL:', corsProxyUrl);
+                console.log('Image URL:', imgUrl);
 
-                startAniListFetch = performance.now();
                 const anilistResponse = await fetch('https://graphql.anilist.co', {
                     method: 'POST',
                     headers: {
@@ -101,11 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     })
                 });
-                endAniListFetch = performance.now();
 
-                startAniListParse = performance.now();
                 const anilistData = await anilistResponse.json();
-                endAniListParse = performance.now();
                 console.log('AniList data:', anilistData);
 
                 const title = anilistData.data.Media.title.english || anilistData.data.Media.title.romaji || anilistData.data.Media.title.native || 'Unknown Title';
@@ -120,9 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`Total Fetch Time: ${endTotalFetch - startTotalFetch} ms`);
             console.log(`trace.moe API Fetch Time: ${endTraceMoeFetch - startTraceMoeFetch} ms`);
             console.log(`trace.moe API Response Parsing Time: ${endTraceMoeParse - startTraceMoeParse} ms`);
-            console.log(`CORS Proxy Image Fetch Time: ${endCorsProxyFetch - startCorsProxyFetch} ms`);
-            console.log(`AniList API Fetch Time: ${endAniListFetch - startAniListFetch} ms`);
-            console.log(`AniList API Response Parsing Time: ${endAniListParse - startAniListParse} ms`);
         } catch (error) {
             console.error('Error:', error);
             resultDiv.innerText = 'An error occurred. Please try again.';
@@ -162,11 +152,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <p>Timestamp: ${formattedTimestamp}</p>
             <h3>Main Thumbnail</h3>
             ${mainThumbnailUrl ? `<a href="${videoUrl}" target="_blank"><img src="${mainThumbnailUrl}" alt="Main Thumbnail" style="max-width: 100%; height: auto;"></a>` : ''}
-           
         `;
     }
 
     // Initially show upload section
     showUploadSection();
-})
-
+});
