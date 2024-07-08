@@ -1,3 +1,5 @@
+// File: public/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     const uploadSection = document.getElementById('uploadSection');
     const resultSection = document.getElementById('resultSection');
@@ -32,30 +34,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('image', screenshot);
 
-        // Declare timing variables
-        let startTotalFetch, endTotalFetch;
-        let startTraceMoeFetch, endTraceMoeFetch;
-        let startTraceMoeParse, endTraceMoeParse;
-        let startCorsProxyFetch, endCorsProxyFetch;
-        let startAniListFetch, endAniListFetch;
-        let startAniListParse, endAniListParse;
-
         try {
-            startTotalFetch = performance.now();
-            startTraceMoeFetch = performance.now();
             const response = await fetch('https://api.trace.moe/search', {
                 method: 'POST',
                 body: formData
             });
-            endTraceMoeFetch = performance.now();
 
             if (!response.ok) {
                 throw new Error('Failed to fetch data from the API.');
             }
 
-            startTraceMoeParse = performance.now();
             const data = await response.json();
-            endTraceMoeParse = performance.now();
             console.log('API response data:', data);
 
             if (data.result.length > 0) {
@@ -63,66 +52,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 const anilistId = result.anilist;
                 const videoUrl = result.video || '';
                 const sceneImageUrl = result.image || '';
-                console.log('Original Video URL:', videoUrl);
-                console.log('Original Image URL:', sceneImageUrl);
 
-                startCorsProxyFetch = performance.now();
-                const proxyUrl = 'https://anime-scene-search.vercel.app/';
+                const proxyUrl = 'https://your-vercel-project.vercel.app/api/proxy?url=';
                 const imgResponse = await fetch(proxyUrl + encodeURIComponent(sceneImageUrl));
                 const imgBlob = await imgResponse.blob();
                 const imgUrl = URL.createObjectURL(imgBlob);
-                endCorsProxyFetch = performance.now();
-                console.log('CORS Proxy Image URL:', proxyUrl);
 
-                startAniListFetch = performance.now();
-                const anilistResponse = await fetch('https://graphql.anilist.co', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: `
-                            query ($id: Int) {
-                                Media(id: $id) {
-                                    title {
-                                        native
-                                        romaji
-                                        english
-                                    }
-                                    coverImage {
-                                        large
-                                    }
-                                }
-                            }
-                        `,
-                        variables: {
-                            id: anilistId
-                        }
-                    })
-                });
-                endAniListFetch = performance.now();
+                const title = result.anime;
+                const episode = result.episode;
+                const timestamp = result.from;
+                const mainThumbnailUrl = ''; // Add your logic to fetch main thumbnail if needed
 
-                startAniListParse = performance.now();
-                const anilistData = await anilistResponse.json();
-                endAniListParse = performance.now();
-                console.log('AniList data:', anilistData);
-
-                const title = anilistData.data.Media.title.english || anilistData.data.Media.title.romaji || anilistData.data.Media.title.native || 'Unknown Title';
-                const mainThumbnailUrl = anilistData.data.Media.coverImage.large || '';
-
-                displayResult(title, result.episode, result.from, videoUrl, imgUrl, mainThumbnailUrl);
+                displayResult(title, episode, timestamp, videoUrl, imgUrl, mainThumbnailUrl);
                 showResultSection();
             }
-            endTotalFetch = performance.now();
-
-            console.log('Timing Measurements:');
-            console.log(`Total Fetch Time: ${endTotalFetch - startTotalFetch} ms`);
-            console.log(`trace.moe API Fetch Time: ${endTraceMoeFetch - startTraceMoeFetch} ms`);
-            console.log(`trace.moe API Response Parsing Time: ${endTraceMoeParse - startTraceMoeParse} ms`);
-            console.log(`CORS Proxy Image Fetch Time: ${endCorsProxyFetch - startCorsProxyFetch} ms`);
-            console.log(`AniList API Fetch Time: ${endAniListFetch - startAniListFetch} ms`);
-            console.log(`AniList API Response Parsing Time: ${endAniListParse - startAniListParse} ms`);
         } catch (error) {
             console.error('Error:', error);
             resultDiv.innerText = 'An error occurred. Please try again.';
@@ -143,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
-            }
+            };
             reader.readAsDataURL(file);
         } else {
             preview.style.display = 'none';
@@ -153,16 +96,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayResult(title, episode, timestamp, videoUrl, sceneImageUrl, mainThumbnailUrl) {
         const formattedTimestamp = timestamp ? new Date(timestamp * 1000).toISOString().substr(11, 8) : 'N/A';
 
-        console.log('Displaying Result - Title:', title, 'Episode:', episode, 'Timestamp:', formattedTimestamp, 'Video URL:', videoUrl, 'Scene Image URL:', sceneImageUrl, 'Main Thumbnail URL:', mainThumbnailUrl);
-
         resultDiv.innerHTML = `
             <h2>Anime Scene Details</h2>
             <p>Anime: ${title}</p>
             <p>Episode: ${episode}</p>
             <p>Timestamp: ${formattedTimestamp}</p>
+            <a href="${videoUrl}" target="_blank">Watch Video</a><br>
+            <img src="${sceneImageUrl}" alt="Scene Screenshot" style="max-width: 100%; height: auto;">
             <h3>Main Thumbnail</h3>
-            ${mainThumbnailUrl ? `<a href="${videoUrl}" target="_blank"><img src="${mainThumbnailUrl}" alt="Main Thumbnail" style="max-width: 100%; height: auto;"></a>` : ''}
-           
+            ${mainThumbnailUrl ? `<img src="${mainThumbnailUrl}" alt="Main Thumbnail" style="max-width: 100%; height: auto;">` : ''}
         `;
     }
 
