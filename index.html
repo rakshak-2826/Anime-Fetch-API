@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Scene Search</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1 class="main-heading">Anime Scene Search</h1>
+    <main id="content">
+        <!-- Content will be loaded here -->
+        <section id="uploadSection" class="upload">
+            <h1>Upload Screenshot Here</h1>
+            <form id="uploadForm">
+                <input type="file" id="screenshot" accept="image/*" required>
+                <div id="previewContainer" class="privew-img">
+                    <img id="preview" src="#" alt="Image Preview" style="display: none; max-width: 100%; height: auto;">
+                </div>
+                <button type="submit">Search</button>
+            </form>
+        </section>
+        <section id="resultSection" class="result" style="display: none;">
+            <h1>Search Result</h1>
+            <div id="result"></div>
+            <button id="resetButton" style="float: right;">Try Again</button>
+        </section>
+    </main>
+    <script src="/fetch.js"></script>
+</body>
+</html>

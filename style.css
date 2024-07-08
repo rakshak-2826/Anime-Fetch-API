@@ -1,0 +1,59 @@
+.main-heading{
+    text-align: center;
+    font-size: 40px;
+    font-style: italic;
+    font-weight: 600;
+    
+
+}
+.upload{
+    border: 2px solid black;
+    width: 50vw;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0px 50px;
+}
+main{
+    display: flex;
+    justify-content: center;position: relative;
+}
+.upload>h1{
+    color: black;
+    text-align: center;
+
+
+}
+
+.upload>form{
+    text-align: center;
+    padding-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+
+.result{
+    border: 2px solid transparent;
+    box-shadow: 2px 2px 5px yellow, -2px -2px 5px green;
+    width: 50vw;
+    height: auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    overflow: auto;
+}
+
+
+.result>h1{
+    text-align: center;
+}
+
+.result>div{
+    text-align: center;
+}
+
+.privew-img{
+    padding: 10px 0px;
+}
+
