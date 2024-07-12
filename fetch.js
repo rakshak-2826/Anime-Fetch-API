@@ -1,21 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const uploadSection = document.getElementById('uploadSection');
-    const resultSection = document.getElementById('resultSection');
     const uploadForm = document.getElementById('uploadForm');
-    const resetButton = document.getElementById('resetButton');
-    const resultDiv = document.getElementById('result');
     const screenshotInput = document.getElementById('screenshot');
     const preview = document.getElementById('preview');
-
-    // Function to show upload section and hide result section
-    function showUploadSection() {
-        uploadSection.style.display = 'block';
-        resultSection.style.display = 'none';
-    }
+    const resultSection = document.getElementById('resultSection');
+    const resultDiv = document.getElementById('result');
+    const resetButton = document.getElementById('resetButton');
 
     // Function to show result section and hide upload section
     function showResultSection() {
-        uploadSection.style.display = 'none';
+        document.querySelector('.modal').style.display = 'none';
         resultSection.style.display = 'block';
     }
 
@@ -32,30 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('image', screenshot);
 
-        // Declare timing variables
-        let startTotalFetch, endTotalFetch;
-        let startTraceMoeFetch, endTraceMoeFetch;
-        let startTraceMoeParse, endTraceMoeParse;
-        let startCorsProxyFetch, endCorsProxyFetch;
-        let startAniListFetch, endAniListFetch;
-        let startAniListParse, endAniListParse;
-
         try {
-            startTotalFetch = performance.now();
-            startTraceMoeFetch = performance.now();
             const response = await fetch('https://api.trace.moe/search', {
                 method: 'POST',
                 body: formData
             });
-            endTraceMoeFetch = performance.now();
 
             if (!response.ok) {
                 throw new Error('Failed to fetch data from the API.');
             }
 
-            startTraceMoeParse = performance.now();
             const data = await response.json();
-            endTraceMoeParse = performance.now();
             console.log('API response data:', data);
 
             if (data.result.length > 0) {
@@ -63,18 +43,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const anilistId = result.anilist;
                 const videoUrl = result.video || '';
                 const sceneImageUrl = result.image || '';
-                console.log('Original Video URL:', videoUrl);
-                console.log('Original Image URL:', sceneImageUrl);
 
-                startCorsProxyFetch = performance.now();
-                const proxyUrl = 'https://anime-scene-search.vercel.app/';
+                const proxyUrl = 'http://localhost:3000/proxy?url=';
                 const imgResponse = await fetch(proxyUrl + encodeURIComponent(sceneImageUrl));
                 const imgBlob = await imgResponse.blob();
                 const imgUrl = URL.createObjectURL(imgBlob);
-                endCorsProxyFetch = performance.now();
                 console.log('CORS Proxy Image URL:', proxyUrl);
 
-                startAniListFetch = performance.now();
                 const anilistResponse = await fetch('https://graphql.anilist.co', {
                     method: 'POST',
                     headers: {
@@ -101,11 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     })
                 });
-                endAniListFetch = performance.now();
 
-                startAniListParse = performance.now();
                 const anilistData = await anilistResponse.json();
-                endAniListParse = performance.now();
                 console.log('AniList data:', anilistData);
 
                 const title = anilistData.data.Media.title.english || anilistData.data.Media.title.romaji || anilistData.data.Media.title.native || 'Unknown Title';
@@ -114,15 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayResult(title, result.episode, result.from, videoUrl, imgUrl, mainThumbnailUrl);
                 showResultSection();
             }
-            endTotalFetch = performance.now();
-
-            console.log('Timing Measurements:');
-            console.log(`Total Fetch Time: ${endTotalFetch - startTotalFetch} ms`);
-            console.log(`trace.moe API Fetch Time: ${endTraceMoeFetch - startTraceMoeFetch} ms`);
-            console.log(`trace.moe API Response Parsing Time: ${endTraceMoeParse - startTraceMoeParse} ms`);
-            console.log(`CORS Proxy Image Fetch Time: ${endCorsProxyFetch - startCorsProxyFetch} ms`);
-            console.log(`AniList API Fetch Time: ${endAniListFetch - startAniListFetch} ms`);
-            console.log(`AniList API Response Parsing Time: ${endAniListParse - startAniListParse} ms`);
         } catch (error) {
             console.error('Error:', error);
             resultDiv.innerText = 'An error occurred. Please try again.';
@@ -131,8 +94,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle reset button click
     resetButton.addEventListener('click', function() {
-        showUploadSection();
+        document.querySelector('.modal').style.display = 'block';
+        resultSection.style.display = 'none';
         preview.style.display = 'none'; // Hide preview on reset
+        screenshotInput.value = ''; // Clear the file input
+        resultDiv.innerHTML = ''; // Clear the result div
+        // Show the upload area content
+        document.querySelector('.upload-area-icon').style.display = 'block';
+        document.querySelector('.upload-area-title').style.display = 'block';
+        document.querySelector('.upload-area-description').style.display = 'block';
     });
 
     // Display preview of uploaded image
@@ -143,10 +113,18 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
+                // Hide the upload area content
+                document.querySelector('.upload-area-icon').style.display = 'none';
+                document.querySelector('.upload-area-title').style.display = 'none';
+                document.querySelector('.upload-area-description').style.display = 'none';
             }
             reader.readAsDataURL(file);
         } else {
             preview.style.display = 'none';
+            // Show the upload area content if no file is selected
+            document.querySelector('.upload-area-icon').style.display = 'block';
+            document.querySelector('.upload-area-title').style.display = 'block';
+            document.querySelector('.upload-area-description').style.display = 'block';
         }
     });
 
@@ -162,10 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <p>Timestamp: ${formattedTimestamp}</p>
             <h3>Main Thumbnail</h3>
             ${mainThumbnailUrl ? `<a href="${videoUrl}" target="_blank"><img src="${mainThumbnailUrl}" alt="Main Thumbnail" style="max-width: 100%; height: auto;"></a>` : ''}
-           
         `;
     }
 
-    // Initially show upload section
-    showUploadSection();
+    // Trigger file input when upload area is clicked
+    document.querySelector('.upload-area').addEventListener('click', function() {
+        screenshotInput.click();
+    });
 });
